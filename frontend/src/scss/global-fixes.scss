@@ -1,0 +1,32 @@
+@mixin fixes{
+  body {
+    margin-top: var(--header-height) !important;
+    background: var(--tui-base-01) !important;
+    color: var(--tui-text-01) !important;
+    font: var(--tui-font-text-m) !important;
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  *::-moz-focus-inner {
+    border: 0 !important;
+  }
+
+  :focus {
+    outline: none !important;
+  }
+
+  a {
+    color: unset;
+    text-decoration: none;
+  }
+
+  tui-marker-icon {
+    cursor: pointer;
+  }
+
+  tui-wrapper[data-appearance="textfield"] {
+    box-shadow: none!important;
+  }
+
+}

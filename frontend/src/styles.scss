@@ -1,1 +1,11 @@
-/* You can add global styles to this file, and also import other style files */
+@import "src/scss/helpers";
+@import "src/scss/global-fixes";
+
+:root {
+  --header-height: 64px;
+  --shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+}
+
+@include include-helpers();
+@include fixes();
+
