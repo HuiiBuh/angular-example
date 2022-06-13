@@ -2,7 +2,7 @@ import base64
 import json
 from typing import Dict, Optional, List
 
-from database import USER_TABLE, TODO_TABLE
+from todo_api.database import USER_TABLE, TODO_TABLE
 from fastapi import HTTPException
 from starlette.requests import Request
 from tinydb import Query, where
@@ -15,7 +15,7 @@ def extract_username(request: Request) -> str:
 
 
 def decode_user_dict(request: Request) -> Dict[str, str]:
-    header = request.headers.get("authorization")
+    header = request.headers.get("Authorization")
     decoded_header = base64.decodebytes(bytes(header, encoding="UTF_8"))
     return json.loads(decoded_header)
 

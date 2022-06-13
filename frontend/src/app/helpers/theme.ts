@@ -1,7 +1,7 @@
 export type ThemeType = 'onLight' | 'onDark';
 
-export const storeThemeValue = (value: boolean) => {
-  localStorage.setItem('theme', translateTheme(value) as string);
+export const storeThemeValue = (value: ThemeType) => {
+  localStorage.setItem('theme', value);
 };
 
 export const getThemeValue = (): boolean => {
@@ -11,9 +11,9 @@ export const getThemeValue = (): boolean => {
 
 export const getThemeString = (): ThemeType => translateTheme(getThemeValue()) as ThemeType;
 
-export const translateTheme = (theme: boolean | string | null): boolean | ThemeType => {
+export const translateTheme = <T extends boolean | string | null>(theme: T): T extends boolean ? ThemeType : boolean => {
   if (typeof theme === 'string') {
-    return theme === 'onDark';
+    return (theme === 'onDark') as T extends boolean ? ThemeType : boolean;
   }
-  return theme ? 'onDark' : 'onLight';
+  return (theme ? 'onDark' : 'onLight') as T extends boolean ? ThemeType : boolean;
 };

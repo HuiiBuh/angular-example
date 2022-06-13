@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { getThemeValue, storeThemeValue } from '../../helpers/theme';
+import { translateTheme } from '../../helpers/theme';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-theme-toggle',
@@ -13,12 +14,18 @@ export class ThemeToggleComponent implements OnInit, OnDestroy {
   public formGroup!: FormGroup;
   private controlSubscription!: Subscription;
 
+  constructor(
+    private theme: ThemeService
+  ) {
+  }
+
   ngOnInit(): void {
-    const currentTheme = getThemeValue();
     this.formGroup = new FormGroup({
-      theme: new FormControl(currentTheme)
+      theme: new FormControl(translateTheme(this.theme.theme))
     });
-    this.controlSubscription = this.formGroup.get('theme')?.valueChanges.subscribe(storeThemeValue)!;
+    this.controlSubscription = this.formGroup.get('theme')?.valueChanges.subscribe((value: boolean) => {
+      this.theme.theme = translateTheme(value);
+    })!;
   }
 
   public ngOnDestroy(): void {

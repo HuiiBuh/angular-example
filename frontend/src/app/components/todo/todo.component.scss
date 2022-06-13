@@ -17,10 +17,29 @@
   width: calc(100% + 2rem);
 }
 
-.todo-text{
+.todo-text {
   overflow: hidden;
   text-overflow: ellipsis;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
-.todo-content {
+.top-right {
+  position: absolute;
+  top: .5rem;
+  right: .5rem;
+}
+
+.top-left {
+  position: absolute;
+  top: .5rem;
+  left: .5rem;
+}
+
+.tags {
+  position: absolute;
+  bottom: 0;
+  right: 1rem;
+  left: 1rem;
+  padding-bottom: 1rem
 }

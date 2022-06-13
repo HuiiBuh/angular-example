@@ -1,11 +1,11 @@
 import time
 from typing import List
 
-from database import TODO_TABLE
 from fastapi import APIRouter, HTTPException
 from starlette.requests import Request
-from todo_api.views.helpers import extract_username, get_user_from_db, crate_user, get_user_from_request, retrieve_todo, \
-    get_todos_from_db
+from todo_api.database import TODO_TABLE
+from todo_api.views.helpers import extract_username, get_user_from_db, crate_user, get_user_from_request, \
+    retrieve_todo, get_todos_from_db
 from todo_api.views.models import Login, User, PartialTodo, ReturnTodo, PostTodo, ToDo, OrderBy
 
 router = APIRouter()
@@ -16,12 +16,22 @@ async def login(login_form: Login):
     user = get_user_from_db(login_form.username)
 
     if not user:
-        user = crate_user(login_form.username, login_form.password)
+        raise HTTPException(400, "User does not exist")
 
     if not user.password_valid(login_form.password):
         raise HTTPException(400, "Password wrong")
 
     return user
+
+
+@router.post("/create-account", response_model=None)
+async def login(login_form: Login):
+    user = get_user_from_db(login_form.username)
+
+    if user:
+        raise HTTPException(400, "User already exists")
+
+    crate_user(login_form.username, login_form.password)
 
 
 @router.get("/account", response_model=User)
@@ -51,6 +61,11 @@ async def get_todo(todo_id: int, request: Request) -> ReturnTodo:
 @router.patch("/todo/{todo_id}", response_model=ReturnTodo)
 async def update_todo(todo_id: int, partial_todo: PartialTodo, request: Request) -> ReturnTodo:
     todo = retrieve_todo(todo_id, request)
+
+    user = get_user_from_request(request)
+    if todo.user_id != user.id:
+        raise HTTPException(403, "You don't have access to this item")
+
     todo.merge_in(partial_todo)
     todo_dict = todo.dict()
     del todo_dict["id"]
@@ -60,7 +75,12 @@ async def update_todo(todo_id: int, partial_todo: PartialTodo, request: Request)
 
 @router.delete("/todo/{todo_id}")
 async def delete_todo(todo_id: int, request: Request) -> None:
-    retrieve_todo(todo_id, request)
+    todo = retrieve_todo(todo_id, request)
+
+    user = get_user_from_request(request)
+    if todo.user_id != user.id:
+        raise HTTPException(403, "You don't have access to this item")
+
     TODO_TABLE.remove(doc_ids=[todo_id])
 
 
@@ -91,7 +111,7 @@ async def get_tags(request: Request) -> List[str]:
         for tag in todo.tags:
             tag_list.append(tag)
 
-    return list(set(tag_list))
+    return sorted(list(set(tag_list)))
 
 
 @router.get("/tags/{tag}", response_model=List[ReturnTodo])

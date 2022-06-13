@@ -14,7 +14,7 @@ export class TodoListComponent implements OnInit {
   public todoList$: Observable<Todo[]>;
 
   constructor(private store: TodoStore) {
-    this.todoList$ = store.onChanges('todo').pipe(map(todo => Object.values(todo)));
+    this.todoList$ = store.filteredTodos$().pipe(map(todo => Object.values(todo)));
   }
 
   public async ngOnInit(): Promise<void> {

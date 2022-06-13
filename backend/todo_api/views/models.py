@@ -24,36 +24,44 @@ class User(BaseModel):
             "password": password
         }
         token_str = bytes(f"{json.dumps(token_object)}", encoding="UTF_8")
+        return str(base64.encodebytes(token_str), encoding="UTF_8").replace("\n", "")
 
-        return str(base64.encodebytes(token_str), encoding="UTF_8") \
-            .replace("\\n", "")
+
+class PasswordChange(BaseModel):
+    old_password: str
+    new_password: str
 
 
 class PartialTodo(BaseModel):
     heading: Optional[str]
-    content: str
+    content: Optional[str]
     tags: Optional[List[str]]
     imageUrl: Optional[str]
+    done: Optional[bool]
 
 
 class PostTodo(BaseModel):
     heading: str
     content: str
     tags: List[str] = Field(default_factory=list)
+    done: bool = Field(default=False)
     imageUrl: Optional[str]
 
     def merge_in(self, todo: PartialTodo) -> None:
-        if todo.heading:
+        if todo.heading is not None:
             self.heading = todo.heading
 
-        if todo.content:
+        if todo.content is not None:
             self.content = todo.content
 
-        if todo.tags:
+        if todo.tags is not None:
             self.tags = todo.tags
 
-        if todo.imageUrl:
+        if todo.imageUrl is not None:
             self.imageUrl = todo.imageUrl
+
+        if todo.done is not None:
+            self.done = todo.done
 
 
 class ToDo(PostTodo):

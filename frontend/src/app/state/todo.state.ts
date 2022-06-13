@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { Store } from 'rxjs-observable-store';
+import { Observable } from 'rxjs';
+import { Store } from 'rx-observable-state';
+import { map } from 'rxjs/operators';
 import { PostTodo, Todo, UserAccount } from '../models/api-response.model';
 import { TodoApiService } from '../services/todo-api.service';
 import { TodoState } from './state.model';
@@ -14,23 +16,24 @@ export class TodoStore extends Store<TodoState> {
     super({
       todo: {},
       tags: [],
-      account: null
+      account: null,
+      filterTags: []
     });
 
     const account = localStorage.getItem('user');
-    if (account) this.patchState(JSON.parse(account), 'account');
+    if (account) this.patch(JSON.parse(account), 'account');
   }
 
   public async login(username: string, password: string, rememberLogin: boolean): Promise<UserAccount> {
     const account = await this.todoApi.login(username, password).toPromise();
-    this.patchState(account, 'account');
+    this.patch(account, 'account');
     if (rememberLogin) localStorage.setItem('user', JSON.stringify(account));
     return account;
   }
 
   public async fetchAccount(): Promise<UserAccount | null> {
     const account = await this.todoApi.getAccount().toPromise();
-    this.patchState(account, 'account');
+    this.patch(account, 'account');
     return account;
   }
 
@@ -43,7 +46,7 @@ export class TodoStore extends Store<TodoState> {
         [todo.id]: todo
       };
     }
-    this.patchState(todosToPatch, 'todo');
+    this.patch(todosToPatch, 'todo');
     return Object.values(this.state.todo);
   }
 
@@ -54,14 +57,15 @@ export class TodoStore extends Store<TodoState> {
       ...todosToPatch,
       [todo.id]: todo
     };
-    this.patchState(todosToPatch, 'todo');
+    this.patch(todosToPatch, 'todo');
     return todo;
   }
 
   public async deleteTodo(todoId: number): Promise<null> {
-    await this.todoApi.deleteTodo(todoId);
+    await this.todoApi.deleteTodo(todoId).toPromise();
     const {[todoId]: value, ...newValue} = this.state.todo;
-    this.patchState(newValue, 'todo');
+    this.patch(newValue, 'todo');
+    this.fetchTags();
     return null;
   }
 
@@ -71,7 +75,7 @@ export class TodoStore extends Store<TodoState> {
       ...this.state.todo,
       [todoId]: updatedTodo
     };
-    this.patchState(newValue, 'todo');
+    this.patch(newValue, 'todo');
     return updatedTodo;
 
   }
@@ -82,13 +86,14 @@ export class TodoStore extends Store<TodoState> {
       ...this.state.todo,
       [newTodo.id]: newTodo
     };
-    this.patchState(newValue, 'todo');
+    this.patch(newValue, 'todo');
+    this.patch(Array.from(new Set([...this.state.tags, ...newTodo.tags])), 'tags');
     return newTodo;
   }
 
   public async fetchTags(): Promise<string[]> {
     const tags = await this.todoApi.getTags().toPromise();
-    this.patchState(tags, 'tags');
+    this.patch(tags, 'tags');
     return this.state.tags;
   }
 
@@ -102,7 +107,7 @@ export class TodoStore extends Store<TodoState> {
       };
     }
 
-    this.patchState(todosToPatch, 'todo');
+    this.patch(todosToPatch, 'todo');
     return Object.values(this.state.todo).filter((t: Todo) => t.tags.includes(tagName));
   }
 
@@ -111,8 +116,34 @@ export class TodoStore extends Store<TodoState> {
   }
 
   public async logout(): Promise<void> {
-    this.patchState(null, 'account');
+    this.setState({
+      todo: {},
+      tags: [],
+      account: null,
+      filterTags: []
+    })
     localStorage.removeItem('user');
     await this.router.navigate(['/logout']);
+  }
+
+  public filterByTag(tags: Record<string, boolean>): void {
+    const selectedTags = [];
+    for (const tag of Object.keys(tags)) {
+      if (tags[tag]) selectedTags.push(tag);
+    }
+    this.patch(selectedTags, 'filterTags');
+  }
+
+  public filteredTodos$(): Observable<Record<string, Todo>> {
+    return this.state$.pipe(
+      map(({filterTags, todo}) => {
+        const todoList = Object.values(todo).filter(todo => todo.tags.some(i => filterTags.includes(i)));
+        if (todoList.length === 0) return todo;
+        return todoList.reduce((todoMap, todoItem) => {
+          todoMap[todoItem.id] = todoItem;
+          return todoMap;
+        }, {} as Record<string, Todo>);
+      })
+    );
   }
 }

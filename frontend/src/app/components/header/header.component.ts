@@ -15,7 +15,7 @@ export class HeaderComponent {
   constructor(
     private store: TodoStore,
   ) {
-    this.account$ = this.store.onChanges('account');
+    this.account$ = this.store.on('account');
   }
 
   public async clearLogin(): Promise<void> {

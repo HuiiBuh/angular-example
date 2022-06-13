@@ -22,7 +22,7 @@ export class TagSelectionComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.tags$ = this.store.onChanges('tags').pipe(
+    this.tags$ = this.store.on('tags').pipe(
       tap((tagList: string[]) => {
         for (let tag of tagList) {
           if (!this.formGroup.get(tag)) {
@@ -34,7 +34,7 @@ export class TagSelectionComponent implements OnInit {
     this.formGroup.valueChanges.subscribe(v => this.log(v));
   }
 
-  public log($event: boolean): void {
-    //console.log($event);
+  public log($event: Record<string, boolean>): void {
+    this.store.filterByTag($event)
   }
 }

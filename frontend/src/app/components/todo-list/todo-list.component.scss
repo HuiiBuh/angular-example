@@ -3,6 +3,7 @@
 
 .spread-todos {
   padding: 1rem;
+  box-sizing: border-box;
 
   @include small {
     @include responsive-grid(1);
