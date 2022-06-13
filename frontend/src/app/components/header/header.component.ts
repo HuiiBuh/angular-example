@@ -18,7 +18,7 @@ export class HeaderComponent {
     this.account$ = this.store.on('account');
   }
 
-  public async clearLogin(): Promise<void> {
-    await this.store.logout();
+  public clearLogin(): void {
+    this.store.dispatch("logout");
   }
 }

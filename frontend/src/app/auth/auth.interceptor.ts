@@ -32,9 +32,9 @@ class AuthErrorHandler implements ErrorHandler {
   ) {
   }
 
-  public async handleError(error: any): Promise<void> {
+  public handleError(error: any): void {
     if (error?.rejection?.status === 403) {
-      await this.store.logout();
+      this.store.dispatch("logout");
     }
   }
 }

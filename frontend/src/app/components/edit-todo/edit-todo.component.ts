@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Inject, OnInit, ViewChild } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { TuiDialogContext } from '@taiga-ui/core';
 import { POLYMORPHEUS_CONTEXT } from '@tinkoff/ng-polymorpheus';
 import type { Extensions } from '@tiptap/core';
@@ -22,7 +22,7 @@ export class EditTodoComponent implements OnInit {
   public angularExtensions = angularExtensions;
   public search = '';
   public filteredTags$: Observable<string[]> | undefined;
-  public formGroup!: FormGroup;
+  public formGroup!: UntypedFormGroup;
   @ViewChild(EditorComponent) private editor!: EditorComponent;
 
   constructor(
@@ -38,10 +38,10 @@ export class EditTodoComponent implements OnInit {
     }
 
 
-    this.formGroup = new FormGroup({
-      heading: new FormControl(todo?.heading, Validators.required),
-      image: new FormControl(todo?.imageUrl),
-      tags: new FormControl(todo ? todo.tags : [])
+    this.formGroup = new UntypedFormGroup({
+      heading: new UntypedFormControl(todo?.heading, Validators.required),
+      image: new UntypedFormControl(todo?.imageUrl),
+      tags: new UntypedFormControl(todo ? todo.tags : [])
     });
     this.filteredTags$ = this.store.on('tags').pipe(
       map(tags => tags.filter(tag => tag.toLocaleLowerCase().includes(this.search.toLocaleLowerCase())))
@@ -49,7 +49,7 @@ export class EditTodoComponent implements OnInit {
   }
 
   public cancel(): void {
-    this.context.completeWith();
+    this.context.completeWith(undefined);
   }
 
   public submit(): void {

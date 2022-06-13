@@ -7,7 +7,7 @@
 <div [style]="{paddingBottom: tags.clientHeight + 'px'}">
   <h3 class="no-margin-top text-center">{{todo.heading}}</h3>
   <tui-scrollbar class="todo-text padding-bottom">
-    <tip-editor-preview [extensions]="extensions" [content]="todo.content"></tip-editor-preview>
+    <tip-editor-preview [sanitizeHtml]="false" [extensions]="extensions" [content]="todo.content"></tip-editor-preview>
   </tui-scrollbar>
 </div>
 

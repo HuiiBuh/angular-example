@@ -10,37 +10,37 @@ import {
   OnDestroy,
   OnInit,
   SimpleChanges
-} from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { TuiDialogService } from '@taiga-ui/core';
-import { PolymorpheusComponent } from '@tinkoff/ng-polymorpheus';
-import { Extensions } from '@tiptap/core';
-import { Observable, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { extensions } from '../../helpers/extensions';
-import { PostTodo, Todo } from '../../models/api-response.model';
-import { TodoStore } from '../../state/todo.state';
-import { EditTodoComponent } from '../edit-todo/edit-todo.component';
+} from "@angular/core"
+import {UntypedFormControl} from "@angular/forms"
+import {TuiDialogService} from "@taiga-ui/core"
+import {PolymorpheusComponent} from "@tinkoff/ng-polymorpheus"
+import {Extensions} from "@tiptap/core"
+import {Observable, Subscription} from "rxjs"
+import {map} from "rxjs/operators"
+import {extensions} from "../../helpers/extensions"
+import {PostTodo, Todo} from "../../models/api-response.model"
+import {TodoStore} from "../../state/todo.state"
+import {EditTodoComponent} from "../edit-todo/edit-todo.component"
 
 @Component({
-  selector: 'app-todo[todo]',
-  templateUrl: './todo.component.html',
-  styleUrls: ['./todo.component.scss'],
+  selector: "app-todo[todo]",
+  templateUrl: "./todo.component.html",
+  styleUrls: ["./todo.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TodoComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
-  @Input() todo!: Todo;
-  public readonly control = new FormControl([]);
-  public filteredTags$: Observable<string[]> | undefined;
-  public search: string = '';
-  public extensions: Extensions = extensions;
-  private controlSubscription!: Subscription;
+  @Input() todo!: Todo
+  public readonly control = new UntypedFormControl([])
+  public filteredTags$: Observable<string[]> | undefined
+  public search: string = ""
+  public extensions: Extensions = extensions
+  private controlSubscription!: Subscription
   private readonly dialog = this.dialogService.open<PostTodo | void>(
     new PolymorpheusComponent(EditTodoComponent, this.injector), {
-      size: 'l',
+      size: "l",
       data: this
     }
-  );
+  )
 
   constructor(
     private store: TodoStore,
@@ -51,34 +51,35 @@ export class TodoComponent implements OnInit, AfterViewInit, OnDestroy, OnChange
   }
 
   public ngOnInit(): void {
-    this.controlSubscription = this.control.valueChanges.subscribe(this.updateTagsForTodo.bind(this));
-    this.filteredTags$ = this.store.on('tags').pipe(
+    this.controlSubscription = this.control.valueChanges.subscribe(this.updateTagsForTodo.bind(this))
+    this.filteredTags$ = this.store.on("tags").pipe(
       map(tags => tags.filter(tag => tag.toLocaleLowerCase().includes(this.search.toLocaleLowerCase())))
-    );
+    )
   }
 
   public ngAfterViewInit(): void {
-    this.cd.detectChanges();
+    this.cd.detectChanges()
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
-    this.control.setValue(this.todo.tags);
+    this.control.setValue(this.todo.tags)
   }
 
   public ngOnDestroy(): void {
-    this.controlSubscription.unsubscribe();
+    this.controlSubscription.unsubscribe()
   }
 
-  private async updateTagsForTodo(tags: string[]) {
-    await this.store.updateTodo(this.todo.id, {tags});
-    await this.store.fetchTags();
+  private updateTagsForTodo(tags: string[]) {
+    this.store.dispatch("updateTodo", this.todo.id, {tags}).subscribe(() => {
+      this.store.dispatch("getTags")
+    })
   }
 
-  public async deleteTodo(): Promise<void> {
-    await this.store.deleteTodo(this.todo.id);
+  public deleteTodo(): void {
+    this.store.dispatch("deleteTodo", this.todo.id)
   }
 
   public editTodo(): void {
-    this.dialog.subscribe(todo => todo && this.store.updateTodo(this.todo.id, todo));
+    this.dialog.subscribe(todo => todo && this.store.dispatch("updateTodo", this.todo.id, todo))
   }
 }

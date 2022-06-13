@@ -28,7 +28,7 @@ export class FabComponent {
   public openDialog(): void {
     this.dialog.subscribe(value => {
       if (!value) return;
-      this.store.createTodo(value);
+      this.store.dispatch("createTodo", value);
     });
   }
 }
